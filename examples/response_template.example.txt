@@ -1,0 +1,95 @@
+# Response Template Examples
+
+Template for AI-generated replies with placeholders.
+
+```txt
+{{generated_content}}
+
+Keep it conversational and friendly! If applicable, add a call to action like:
+- "Let me know if you have any questions!"
+- "Happy to help - drop a comment below!"
+- "Thanks for watching, and see you in the next video!"
+```
+
+## Template Placeholders
+
+| Placeholder | Description |
+|-- ----|-- -----|
+| `{{generated_content}}` | The AI-generated response text |
+
+## Different Template Styles
+
+### Friendly Template
+
+```txt
+{{generated_content}}
+
+Thanks for your question! If you want to learn more, check out my video on [topic]. Let me know what you think! 😊
+```
+
+### Professional Template
+
+```txt
+{{generated_content}}
+
+Best regards,
+[Channel Name]
+
+Have a question? Drop it in the comments below!
+```
+
+### Enthusiastic Template
+
+```txt
+{{generated_content}}
+
+That's an awesome question! 🚀 I'm so glad you asked. Don't forget to like and subscribe for more content like this! 💪
+```
+
+### Neutral Template
+
+```txt
+{{generated_content}}
+
+Thanks for your comment. Let me know if you need any clarification.
+```
+
+## Template Best Practices
+
+1. **Keep it short**: Templates should be 1-3 sentences
+2. **Add value**: Include a call to action or extra information
+3. **Be consistent**: Use similar templates for similar replies
+4. **Test thoroughly**: Ensure templates work with all response lengths
+
+## Advanced Templates
+
+### With Video References
+
+```txt
+{{generated_content}}
+
+I actually cover this in more detail in my video "[Video Title]". It walks through the exact steps and provides sample code. Check it out if you want to learn more!
+```
+
+### With Social Links
+
+```txt
+{{generated_content}}
+
+Follow me on [Twitter](https://twitter.com/yourhandle) for daily tips, or join our [Discord](https://discord.gg/yourserver) community to connect with other developers!
+```
+
+### With Code Snippet Context
+
+```txt
+{{generated_content}}
+
+Here's a code snippet that demonstrates the solution:
+
+```python
+# Your code here
+print("Hello, World!")
+```
+
+Let me know if you need any clarification!
+```

@@ -1,0 +1,29 @@
+# OpenReplay Configuration
+#
+# This is an example configuration file.
+# Copy this to config.yaml and fill in your values.
+
+# Provider selection
+provider: youtube
+
+# YouTube-specific settings
+youtube:
+  video_id: YOUR_VIDEO_ID_HERE
+
+# LLM endpoint configuration
+llm:
+  base_url: http://localhost:11434/v1
+  api_key: YOUR_API_KEY_HERE
+  model: qwen3:latest
+
+# Response policy configuration
+policy:
+  mode: knowledge_preferred  # knowledge_only, knowledge_preferred, knowledge_combined, unrestricted
+
+# Fallback strategy when information is unavailable
+fallback:
+  strategy: generic  # generic, skip, flag
+
+# Generation style for responses
+generation:
+  style: friendly  # professional, friendly, expert, marketing, custom

@@ -1,0 +1,83 @@
+# OpenReplay Configuration Example
+
+Full example configuration with all options documented.
+
+```yaml
+# Provider selection (youtube, twitter, etc.)
+provider: youtube
+
+# YouTube-specific settings
+youtube:
+  video_id: dQw4w9WgXcQ  # Your YouTube video ID
+
+# LLM API settings
+llm:
+  base_url: http://localhost:11434/v1  # Ollama endpoint
+  api_key: dummy                        # Not used for Ollama
+  model: qwen3                          # LLM model name
+
+# Knowledge base policy
+policy:
+  mode: knowledge_preferred             # knowledge_preferred, knowledge_only, fallback_only, general
+
+# Fallback strategy (when knowledge not found)
+fallback:
+  strategy: generic                     # generic, personalized, no_response
+
+# Response style
+generation:
+  style: friendly                       # friendly, professional, enthusiastic, neutral
+```
+
+## Quick Start Configuration
+
+Minimal configuration for immediate use:
+
+```yaml
+provider: youtube
+youtube:
+  video_id: YOUR_VIDEO_ID
+llm:
+  base_url: http://localhost:11434/v1
+policy:
+  mode: knowledge_preferred
+generation:
+  style: friendly
+```
+
+## Environment Variables
+
+Set these in your shell or `.env` file:
+
+```bash
+export YOUTUBE_CLIENT_ID="your_client_id"
+export YOUTUBE_CLIENT_SECRET="your_client_secret"
+```
+
+## Multiple Provider Setup
+
+To switch between providers, just change the provider setting:
+
+```yaml
+# For YouTube
+provider: youtube
+
+# For Twitter (future)
+# provider: twitter
+```
+
+## Testing Configuration
+
+Use test settings for development:
+
+```yaml
+provider: youtube
+youtube:
+  video_id: test_video_id
+llm:
+  base_url: http://localhost:11434/v1
+policy:
+  mode: general  # Skip knowledge during testing
+generation:
+  style: neutral  # Neutral for testing
+```

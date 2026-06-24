@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openreplay"
+version = "0.1.0"
+description = "Self-hosted AI-powered community management platform"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pyyaml>=6.0",
+    "requests>=2.28.0",
+    "google-api-python-client>=2.0",
+    "google-auth-oauthlib>=1.0",
+]
+
+[project.scripts]
+openreplay = "openreplay.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["."]

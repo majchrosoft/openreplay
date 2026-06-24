@@ -1,0 +1,20 @@
+# OpenReplay
+
+Self-hosted AI-powered community management platform.
+
+## Quick Start
+
+1. Clone the repository
+2. Install dependencies: `pip install -e .`
+3. Create config: `cp config.example.yaml config.yaml`
+4. Run: `openreplay auth --client-secret client_secret.json`
+
+## Development
+
+1. Install dev dependencies: `pip install -e ".[dev]"`
+2. Run tests: `python -m pytest tests/`
+3. Run linter: `python -m flake8 .`
+
+## License
+
+MIT License - See [LICENSE](LICENSE) for details.
