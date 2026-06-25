@@ -19,7 +19,8 @@ Implement YouTube OAuth2 authentication flow.
 - Browser opening for authentication
 - Token storage in tokens/youtube.json
 - Token refresh handling
-- API key fallback support
+- Support for client_secret.json file
+- Support for environment variables (GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET)
 
 ### Authentication Flow
 1. Check for existing tokens

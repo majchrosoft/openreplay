@@ -111,9 +111,11 @@ def generate_replies(
 
         try:
             # Build prompt
+            knowledge_content = knowledge_base.get_all_content()
+
             system_prompt = build_prompt(
                 comment_text,
-                knowledge_base.get_all_content(),
+                knowledge_content,
                 config.policy_mode,
                 config.generation_style,
             )
@@ -168,6 +170,20 @@ def run(args):
     print(f"Generating AI responses using {config.llm_model}...")
     print(f"Knowledge mode: {config.policy_mode}")
     print(f"Response style: {config.generation_style}")
+
+    # Test LLM connection first
+    print("\nTesting LLM connection...")
+    from llm.generator import generator as llm_generator
+    if not llm_generator.test_connection():
+        print("❌ LLM connection failed!")
+        print(f"   Cannot connect to {llm_generator.base_url}")
+        print("\nTo fix this:")
+        print("1. Install and start Ollama: https://ollama.com/download")
+        print("2. Pull the model: ollama pull qwen3")
+        print("3. Verify: curl http://localhost:11434/")
+        print("\nOr update config.yaml with a different LLM endpoint.")
+        return
+    print("✓ LLM connection successful")
 
     knowledge_file = getattr(args, "knowledge_file", "knowledge.md")
     output_file = getattr(args, "output", "workspace/replies.json")

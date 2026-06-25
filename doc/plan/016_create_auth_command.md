@@ -20,6 +20,8 @@ Create the authentication CLI command.
 - Open browser for authentication
 - Handle OAuth2 callback
 - Store tokens in tokens/youtube.json
+- Support client_secret.json via --client-secret flag
+- Support environment variables (GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET)
 - Show success message
 
 ### Command Implementation

@@ -41,6 +41,16 @@ def main():
         help="Output file for comments",
     )
 
+    # select command
+    select_parser = subparsers.add_parser(
+        "select", help="Fetch and select YouTube videos"
+    )
+    select_parser.add_argument(
+        "--output",
+        "-o",
+        help="Output file to save video list",
+    )
+
     # generate command
     generate_parser = subparsers.add_parser(
         "generate", help="Generate AI responses for fetched comments"
@@ -85,6 +95,7 @@ def main():
         print("\nCommands:")
         print("  auth      Authenticate with YouTube")
         print("  fetch     Fetch YouTube comments")
+        print("  select    Fetch and select YouTube videos")
         print("  generate  Generate AI responses")
         print("  publish   Publish generated responses")
         sys.exit(0)
@@ -95,6 +106,10 @@ def main():
         run(args)
     elif args.command == "fetch":
         from commands.fetch import run
+
+        run(args)
+    elif args.command == "select":
+        from commands.select import run
 
         run(args)
     elif args.command == "generate":

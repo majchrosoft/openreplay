@@ -48,6 +48,14 @@ def run(args: argparse.Namespace):
         print("No replies to publish.")
         return
     
+    # Load previously published replies to avoid duplicates
+    published_replies_file = Path("workspace/published.json")
+    already_published = set()
+    if published_replies_file.exists():
+        with open(published_replies_file, "r") as f:
+            data = json.load(f)
+            already_published = {r.get("comment_id") for r in data.get("published", [])}
+    
     provider = YouTubeProvider()
     
     try:
@@ -72,6 +80,12 @@ def run(args: argparse.Namespace):
             continue
         
         comment_id = reply["comment_id"]
+        
+        # Skip if already published
+        if comment_id in already_published:
+            print(f"Skipping {comment_id}: already published")
+            continue
+        
         reply_content = reply["final_reply"]
         
         if dry_run:

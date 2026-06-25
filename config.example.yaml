@@ -15,6 +15,7 @@ llm:
   base_url: http://localhost:11434/v1
   api_key: YOUR_API_KEY_HERE
   model: qwen3:latest
+  timeout: 60
 
 # Response policy configuration
 policy:

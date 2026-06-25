@@ -6,15 +6,18 @@
 import json
 import os
 import time
-import webbrowser
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
 import requests
+from dotenv import load_dotenv
+from google_auth_oauthlib.flow import InstalledAppFlow
 
 from providers.base import Provider
+
+load_dotenv()
 
 
 @dataclass
@@ -40,10 +43,7 @@ class Comment:
 class YouTubeProvider(Provider):
     """YouTube provider with OAuth2 authentication."""
 
-    AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
-    TOKEN_URL = "https://oauth2.googleapis.com/token"
-    SCOPE = "https://www.googleapis.com/auth/youtube.force-ssl"
-    REDIRECT_URI = "urn:ietf:wg:oauth:2.0:oob"
+    SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 
     def __init__(self, client_id: Optional[str] = None, client_secret: Optional[str] = None):
         """Initialize YouTube provider.
@@ -52,8 +52,8 @@ class YouTubeProvider(Provider):
             client_id: OAuth2 client ID from Google Cloud Console
             client_secret: OAuth2 client secret from Google Cloud Console
         """
-        self.client_id = client_id or os.environ.get("YOUTUBE_CLIENT_ID")
-        self.client_secret = client_secret or os.environ.get("YOUTUBE_CLIENT_SECRET")
+        self.client_id = client_id or os.environ.get("GOOGLE_OAUTH_CLIENT_ID")
+        self.client_secret = client_secret or os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET")
         self.tokens_file = Path("tokens/youtube.json")
         self.credentials = None
 
@@ -76,7 +76,7 @@ class YouTubeProvider(Provider):
     def _refresh_tokens(self, refresh_token: str) -> dict:
         """Refresh access token using refresh token."""
         response = requests.post(
-            self.TOKEN_URL,
+            "https://oauth2.googleapis.com/token",
             data={
                 "client_id": self.client_id,
                 "client_secret": self.client_secret,
@@ -116,36 +116,47 @@ class YouTubeProvider(Provider):
                 except requests.exceptions.RequestException:
                     pass
 
-        auth_url = (
-            f"{self.AUTH_URL}"
-            f"?client_id={self.client_id}"
-            f"&redirect_uri={self.REDIRECT_URI}"
-            f"&scope={self.SCOPE}"
-            f"&response_type=code"
-        )
-
-        print(f"Open this URL in your browser:\n{auth_url}")
-        webbrowser.open(auth_url)
-
-        auth_code = input("Enter the authorization code: ").strip()
-
-        response = requests.post(
-            self.TOKEN_URL,
-            data={
+        # Create client configuration for InstalledAppFlow
+        client_config = {
+            "installed": {
                 "client_id": self.client_id,
                 "client_secret": self.client_secret,
-                "code": auth_code,
-                "redirect_uri": self.REDIRECT_URI,
-                "grant_type": "authorization_code",
-            },
+                "auth_uri": "https://accounts.google.com/o/oauth2/v2/auth",
+                "token_uri": "https://oauth2.googleapis.com/token",
+                "redirect_uris": ["urn:ietf:wg:oauth:2.0:oob", "http://localhost"],
+            }
+        }
+        
+        # Use InstalledAppFlow which handles localhost OAuth correctly
+        flow = InstalledAppFlow.from_client_config(client_config, self.SCOPES)
+        
+        print("Starting local server for OAuth authentication...")
+        print("If browser doesn't open automatically, visit the link shown below:")
+        
+        # Run local server - this handles everything including choosing a random port
+        credentials = flow.run_local_server(
+            host="localhost",
+            port=0,  # Let it pick a random available port
+            open_browser=True,
+            authorization_prompt_message="Please visit this URL to authorize this application:\n{url}",
+            success_message="Authentication successful! You can close this window.",
+            timeout_seconds=300,  # 5 minutes timeout
         )
-        response.raise_for_status()
-
-        tokens = response.json()
-        tokens["expires_at"] = time.time() + tokens.get("expires_in", 3600)
+        
+        # Convert credentials to tokens dict
+        tokens = {
+            "access_token": credentials.token,
+            "refresh_token": credentials.refresh_token,
+            "token_uri": credentials.token_uri,
+            "client_id": credentials.client_id,
+            "client_secret": credentials.client_secret,
+            "scopes": credentials.scopes,
+            "expires_at": credentials.expiry.timestamp() if credentials.expiry else time.time() + 3600,
+        }
+        
         self._save_tokens(tokens)
         self.credentials = tokens
-
+        
         return tokens
 
     def _make_request(self, endpoint: str, params: Optional[dict] = None, method: str = "GET", data: Optional[dict] = None) -> dict:
@@ -191,26 +202,45 @@ class YouTubeProvider(Provider):
         if not self.credentials:
             raise ValueError("Not authenticated. Call authenticate() first.")
 
+        # First get user info to get uploads playlist ID
+        user_info = self.get_user_info()
+        uploads_playlist_id = user_info["contentDetails"]["relatedPlaylists"]["uploads"]
+        
         videos = []
         page_token = None
 
         while True:
             params = {
-                "part": "snippet,statistics",
-                "mine": "true",
+                "part": "snippet,contentDetails",
+                "playlistId": uploads_playlist_id,
                 "maxResults": 50,
             }
             if page_token:
                 params["pageToken"] = page_token
 
-            response = self._make_request("videos", params)
+            response = self._make_request("playlistItems", params)
             
             for item in response.get("items", []):
                 snippet = item.get("snippet", {})
-                statistics = item.get("statistics", {})
+                content_details = item.get("contentDetails", {})
+                
+                # Get video details from the actual video resource
+                video_id = content_details.get("videoId")
+                if not video_id:
+                    continue
+                
+                # Fetch video details for comment count
+                try:
+                    video_response = self._make_request("videos", {
+                        "part": "statistics",
+                        "id": video_id
+                    })
+                    statistics = video_response.get("items", [{}])[0].get("statistics", {})
+                except:
+                    statistics = {"commentCount": "0"}
                 
                 video = Video(
-                    id=item["id"],
+                    id=video_id,
                     title=snippet.get("title", "Unknown"),
                     published_at=datetime.fromisoformat(snippet["publishedAt"].replace("Z", "+00:00")),
                     comment_count=int(statistics.get("commentCount", 0)),
@@ -300,7 +330,7 @@ class YouTubeProvider(Provider):
         }
 
         response = self._make_request(
-            "comments",
+            "comments?part=snippet",
             method="POST",
             data=data,
         )

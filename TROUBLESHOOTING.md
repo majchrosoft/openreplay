@@ -1,239 +1,156 @@
 # Troubleshooting Guide
 
-Common issues and solutions for OpenReplay.
+## Common Issues
 
-## Authentication Issues
+### Issue: "Connection refused" when generating AI responses
 
-### "Client ID and client secret must be provided"
+**Error:** `ConnectionRefusedError: [Errno 61] Connection refused` on port 11434
 
-**Error:**
-```
-ValueError: Client ID and client secret must be provided
-```
+**Cause:** Ollama LLM server is not running. The `generate` command requires a local LLM server accessible at `http://localhost:11434`.
 
 **Solution:**
-- Create OAuth credentials in [Google Cloud Console](https://console.cloud.google.com/)
-- Download client secret JSON file
-- Use: `openreplay auth --client-secret client_secret.json`
 
-### "Not authenticated. Call authenticate() first."
+1. **Install and start Ollama:**
+   ```bash
+   # macOS
+   brew install ollama
+   ollama serve
+   
+   # Or download from https://ollama.com/download
+   ```
 
-**Error:**
-```
-ValueError: Not authenticated. Call authenticate() first.
-```
+2. **Pull the required model:**
+   ```bash
+   # The config uses qwen3 by default
+   ollama pull qwen3
+   ```
 
-**Solution:**
-- Run: `openreplay auth --client-secret client_secret.json`
-- Check `tokens/youtube.json` exists
+3. **Verify Ollama is running:**
+   ```bash
+   curl http://localhost:11434/
+   # Should return: Ollama is running
+   ```
 
-### Token Expiration
+4. **Test the model:**
+   ```bash
+   ollama run qwen3
+   > Hello
+   # Should respond to your message
+   ```
 
-**Symptoms:**
-- API calls failing with 401 errors
-- "Token expired" messages
+**Alternative: Use a different LLM provider**
 
-**Solution:**
-- Tokens auto-refresh when expired
-- If issues persist, re-authenticate: `openreplay auth --client-secret client_secret.json`
+Edit `config.yaml` to use a different LLM endpoint:
 
-## Configuration Issues
-
-### "No video_id configured in config.yaml"
-
-**Error:**
-```
-Error: No video_id configured in config.yaml
-```
-
-**Solution:**
-Edit `config.yaml`:
 ```yaml
-youtube:
-  video_id: YOUR_VIDEO_ID
+llm:
+  base_url: http://your-llm-api.com/v1
+  api_key: your-api-key
+  model: your-model-name
 ```
 
-### "config.yaml not found"
+---
 
-**Symptoms:**
-- Warning about missing config file
-- Script continues with defaults
+### Issue: "No filter selected" when listing videos
+
+**Error:** `400 Client Error: Bad Request - No filter selected. Expected one of: myRating, id, chart`
+
+**Cause:** The YouTube API `videos.list` endpoint requires specific filter parameters.
+
+**Solution:** Already fixed in latest version. The code now uses `playlistItems.list` endpoint with the uploads playlist ID instead.
+
+---
+
+### Issue: "Invalid request" during YouTube authentication
+
+**Error:** `400 invalid_request` or "The out-of-band (OOB) flow has been blocked"
+
+**Cause:** The old OAuth implementation used the deprecated OOB (out-of-band) flow.
+
+**Solution:** Already fixed in latest version. The code now uses `google-auth-oauthlib`'s `InstalledAppFlow.run_local_server()` which implements the modern localhost redirect flow.
+
+---
+
+### Issue: "No comments to process"
+
+**Error:** "No comments to process. Run 'openreplay fetch' first."
+
+**Cause:** Comments haven't been fetched yet.
 
 **Solution:**
-Create `config.yaml`:
 ```bash
-cp config.example.yaml config.yaml
-# Edit with your values
+# First authenticate
+openreplay auth
+
+# Select a video
+openreplay select
+
+# Fetch comments
+openreplay fetch
+
+# Then generate responses
+openreplay generate
 ```
 
-## Fetch Issues
+---
 
-### "Failed to fetch comments"
+### Issue: "LLM API error" with timeout or other errors
 
-**Causes:**
-- Invalid video ID
-- No comments on video
-- Authentication issues
-
-**Solution:**
-1. Verify video_id in config.yaml
-2. Check video has comments on YouTube
-3. Re-authenticate: `openreplay auth --client-secret client_secret.json`
-
-### Empty comments array
-
-**Symptoms:**
-```
-No comments to process. Run 'openreplay fetch' first.
-```
-
-**Solution:**
-- Video may have no comments
-- Check video on YouTube directly
-- Try fetch with different video
-
-## Generation Issues
-
-### "No comments to process"
-
-**Solution:**
-- Run fetch first: `openreplay fetch`
-- Check `workspace/comments.json` exists and has content
-
-### LLM Connection Failed
-
-**Symptoms:**
-- "Connection refused" errors
-- "Connection timed out"
-
-**Solution:**
-1. Check LLM service running: `curl http://localhost:11434/api/tags`
-2. Update config.yaml with correct base_url
-3. For OpenAI: Set correct API key and model
-
-### Knowledge Base Not Loading
-
-**Symptoms:**
-- "File not found" errors for knowledge.md
-
-**Solution:**
-Create knowledge base:
-```bash
-cat > knowledge.md << EOF
-# Knowledge Base
-
-Q: How does this work?
-A: This works by following a simple process.
-
-Q: Is this available internationally?
-A: Yes, this service is available worldwide.
-EOF
-```
-
-## Publish Issues
-
-### "Authentication error"
-
-**Solution:**
-- Re-authenticate before publishing: `openreplay auth --client-secret client_secret.json`
-- Check tokens/youtube.json is valid
-
-### Partial failures
-
-**Symptoms:**
-```
-Published 140 replies
-Failed: 2
-```
-
-**Solution:**
-- Check `workspace/published.json` for failed items
-- Retry failed replies manually if needed
-- Some comments may have been deleted/privacy settings
-
-### Dry-run shows different results
-
-**Symptoms:**
-- Actual publish differs from dry-run
-
-**Solution:**
-- Dry-run shows what *would* be published
-- Comments may be deleted between dry-run and actual publish
-- Status is tracked in `workspace/published.json`
-
-## File Issues
-
-### Files not being created
-
-**Symptoms:**
-- No output in workspace/
-
-**Solution:**
-Check directory permissions:
-```bash
-mkdir -p workspace
-chmod 755 workspace
-```
-
-### Wrong file paths
-
-**Solution:**
-Use correct paths or defaults:
-```bash
-openreplay fetch -o workspace/comments.json
-openreplay generate -o workspace/replies.json
-openreplay publish --replies-file workspace/replies.json
-```
-
-## Performance Issues
-
-### Slow comment fetching
-
-**Causes:**
-- Many comments (pagination)
-- Network latency
+**Possible Causes:**
+1. LLM server is slow or unresponsive
+2. Model is large and takes time to load
+3. API key is missing or invalid
+4. Model doesn't support the API format
 
 **Solutions:**
-- Fetch only recent comments (future feature)
-- Check internet connection
-- Consider rate limits
 
-### Slow AI generation
+1. **Increase timeout in config:**
+   ```yaml
+   llm:
+     timeout: 60  # Default is 30 seconds
+   ```
 
-**Causes:**
-- Large knowledge base
-- Complex prompts
-- Slow LLM service
+2. **Use a smaller/faster model:**
+   ```yaml
+   llm:
+     model: qwen2.5:0.5b  # Very fast, low quality
+   ```
 
-**Solutions:**
-- Optimize knowledge.md (remove redundant Q&A)
-- Use faster LLM (change model in config.yaml)
-- Batch process (future feature)
+3. **Check LLM server logs:**
+   ```bash
+   # For Ollama
+   ollama logs
+   ```
 
-## Common Error Messages
+4. **Test with curl:**
+   ```bash
+   curl http://localhost:11434/v1/chat/completions \
+     -H "Content-Type: application/json" \
+     -d '{
+       "model": "qwen3",
+       "messages": [{"role": "user", "content": "Hello"}],
+       "temperature": 0.7
+     }'
+   ```
 
-| Error | Cause | Solution |
-|-------|------|--------|
-| "Not authenticated" | No valid tokens | `openreplay auth` |
-| "Video not found" | Invalid video_id | Check config.yaml |
-| "No comments" | Video has no comments | Check video on YouTube |
-| "Connection refused" | LLM service down | Start Ollama or check API |
-| "Rate limit exceeded" | Too many requests | Wait and retry |
-
-## Getting Help
-
-1. **Check logs**: Examine workspace files for errors
-2. **Review docs**: See USAGE.md for command details
-3. **Test flow**: Run each command step-by-step
-4. **Configuration**: Verify all required fields in config.yaml
+---
 
 ## Debug Mode
 
-Enable verbose output:
+Run commands with verbose logging:
+
 ```bash
-python3 -m openreplay --debug
+# For generate command
+python3 -m commands.generate --knowledge-file knowledge.md --output workspace/replies.json
 ```
 
-## Feature Requests
+---
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for contributing guidelines.
+## Verification Checklist
+
+- [ ] Ollama is running: `curl http://localhost:11434/`
+- [ ] Model is installed: `ollama list`
+- [ ] YouTube authenticated: `tokens/youtube.json` exists
+- [ ] Video selected: `config.yaml` has `youtube.video_id`
+- [ ] Comments fetched: `workspace/comments.json` exists with comments
+- [ ] Knowledge base exists: `knowledge.md` exists (or edit config to use empty knowledge)

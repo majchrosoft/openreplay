@@ -22,6 +22,7 @@ class Config:
                 "base_url": "http://localhost:11434/v1",
                 "api_key": "dummy",
                 "model": "qwen3",
+                "timeout": 60,
             },
             "policy": {"mode": "knowledge_preferred"},
             "fallback": {"strategy": "generic"},
@@ -85,6 +86,11 @@ class Config:
     def llm_model(self) -> str:
         """Get LLM model name."""
         return self.get("llm.model", "qwen3")
+
+    @property
+    def llm_timeout(self) -> int:
+        """Get LLM timeout in seconds."""
+        return self.get("llm.timeout", 60)
 
     @property
     def policy_mode(self) -> str:

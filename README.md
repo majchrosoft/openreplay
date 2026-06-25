@@ -5,6 +5,15 @@ Self-hosted AI-powered community management platform for YouTube.
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
+⚠️ **ALPHA STATUS - USE WITH CAUTION**
+
+This project is in active development and **must be used with caution**. The author takes **no responsibility** for any issues, data loss, or unintended behavior that may result from using this software. **Run on your own responsibility.**
+
+**Known limitations:**
+- Code was prepared via vibe coding technique
+- OAuth authentication uses localhost callback (requires local environment)
+- LLM integration requires local Ollama or compatible API
+
 ## Overview
 
 OpenReplay automates YouTube community management using AI. It fetches comments from your videos, generates intelligent AI-powered responses using your own knowledge base, and can automatically publish them.
@@ -29,7 +38,7 @@ OpenReplay automates YouTube community management using AI. It fetches comments 
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/openreplay.git
+git clone https://github.com/majchrosoft/openreplay.git
 cd openreplay
 ```
 
@@ -46,6 +55,23 @@ cp config.example.yaml config.yaml
 ```
 
 Edit `config.yaml` with your settings.
+
+4. Set up environment variables (optional, replaces client_secret.json):
+
+Create a `.env` file:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your Google OAuth credentials:
+
+```
+GOOGLE_OAUTH_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_OAUTH_CLIENT_SECRET=your-client-secret
+```
+
+You can still use `client_secret.json` instead by passing `--client-secret` flag.
 
 ## Configuration
 
@@ -67,6 +93,34 @@ policy:
 generation:
   style: friendly
 ```
+
+### Setting Your Video ID
+
+To fetch comments from a specific YouTube video, you need to set `youtube.video_id` in your configuration.
+
+**Option 1: Interactive Selection (Recommended)**
+
+Use the `select` command to fetch and choose from your YouTube videos:
+
+```bash
+openreplay select
+```
+
+This command will:
+- List all your uploaded videos with titles and comment counts
+- Let you select a video by number
+- Automatically update your configuration
+
+**Option 2: Manual Configuration**
+
+Manually edit `config.yaml` and set the video ID:
+
+```yaml
+youtube:
+  video_id: dQw4w9WgXcQ
+```
+
+You can find the video ID in the YouTube URL (e.g., `https://youtube.com/watch?v=dQw4w9WgXcQ`).
 
 ### Configuration Options
 
@@ -90,17 +144,58 @@ First, authenticate with YouTube:
 openreplay auth --client-secret path/to/client_secret.json
 ```
 
+Or use environment variables in `.env`:
+
+```
+GOOGLE_OAUTH_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_OAUTH_CLIENT_SECRET=your-client-secret
+```
+
 This will open a browser window for OAuth2 authentication and store tokens in `tokens/youtube.json`.
+
+### Fetch and Select Video
+
+List and select a video from your channel:
+
+```bash
+openreplay select
+```
+
+This will display all your uploaded videos and let you choose one. The selected video ID will be saved to `config.yaml`.
 
 ### Fetch Comments
 
-Fetch comments from your video:
+Fetch comments from your configured video:
 
 ```bash
 openreplay fetch
 ```
 
 Comments are saved to `workspace/comments.json`.
+
+#### Getting OAuth Credentials
+
+**Option 1: Using client_secret.json**
+
+The `client_secret.json` file is obtained from **Google Cloud Console**:
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create or select a project
+3. Enable **YouTube Data API v3** (APIs & Services → Library)
+4. Create OAuth credentials (APIs & Services → Credentials → Create Credentials → OAuth client ID)
+5. Set application type to **"Desktop app"**
+6. Download the JSON file and save as `client_secret.json`
+
+**Option 2: Using .env file**
+
+Create `.env` file in project root with:
+
+```
+GOOGLE_OAUTH_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_OAUTH_CLIENT_SECRET=your-client-secret
+```
+
+For detailed instructions, see `examples/client_secret.example.json`.
 
 ### Generate Replies
 
@@ -130,6 +225,7 @@ openreplay --help
 Commands:
   auth      Authenticate with YouTube
   fetch     Fetch YouTube comments
+  select    Fetch and select YouTube videos
   generate  Generate AI responses
   publish   Publish generated responses
 ```
@@ -192,7 +288,7 @@ python3 -m pytest tests/test_generate.py
 - ✅ Policy and prompt system
 - ✅ LLM integration
 - ✅ YouTube provider (OAuth, fetch, publish)
-- ✅ CLI commands (auth, fetch, generate, publish)
+- ✅ CLI commands (auth, fetch, select, generate, publish)
 - ✅ Unit and integration tests
 - ✅ End-to-end flow tests
 

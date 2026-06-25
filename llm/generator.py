@@ -8,22 +8,31 @@ from typing import Optional
 
 import requests
 
+from openreplay.config import config
+
 
 class LLMGenerator:
     """Generates AI responses using LLM API."""
 
     def __init__(
         self,
-        base_url: str = "http://localhost:11434/v1",
-        api_key: str = "dummy",
-        model: str = "qwen3",
-        timeout: int = 60,
+        base_url: Optional[str] = None,
+        api_key: Optional[str] = None,
+        model: Optional[str] = None,
+        timeout: Optional[int] = None,
     ):
-        """Initialize LLM generator."""
-        self.base_url = base_url.rstrip("/")
-        self.api_key = api_key
-        self.model = model
-        self.timeout = timeout
+        """Initialize LLM generator.
+        
+        Args:
+            base_url: LLM API base URL. If None, reads from config.
+            api_key: LLM API key. If None, reads from config.
+            model: Model name. If None, reads from config.
+            timeout: Request timeout. If None, reads from config.
+        """
+        self.base_url = (base_url or config.llm_base_url).rstrip("/")
+        self.api_key = api_key or config.llm_api_key
+        self.model = model or config.llm_model
+        self.timeout = timeout or config.llm_timeout
         self._last_request_time = 0
         self._rate_limit_delay = 0.1
 

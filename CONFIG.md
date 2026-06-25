@@ -160,12 +160,21 @@ generation:
 
 ## Environment Variables
 
-You can also set configuration via environment variables:
+You can also set OAuth credentials via environment variables:
 
 ```bash
-export YOUTUBE_CLIENT_ID="your_client_id"
-export YOUTUBE_CLIENT_SECRET="your_client_secret"
+export GOOGLE_OAUTH_CLIENT_ID="your_client_id"
+export GOOGLE_OAUTH_CLIENT_SECRET="your_client_secret"
 ```
+
+Or create a `.env` file in the project root:
+
+```
+GOOGLE_OAUTH_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_OAUTH_CLIENT_SECRET=your-client-secret
+```
+
+Using `.env` is recommended for local development and simplifies authentication without needing to specify `--client-secret` flag.
 
 ## Configuration Validation
 

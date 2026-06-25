@@ -20,10 +20,17 @@ class TestLLMGenerator(unittest.TestCase):
 
     def test_init_defaults(self):
         """Test initialization with defaults."""
-        gen = LLMGenerator()
+        # Use explicit values to avoid using config
+        gen = LLMGenerator(
+            base_url="http://localhost:11434/v1",
+            api_key="dummy",
+            model="qwen3",
+            timeout=60,
+        )
         self.assertEqual(gen.base_url, "http://localhost:11434/v1")
         self.assertEqual(gen.api_key, "dummy")
         self.assertEqual(gen.model, "qwen3")
+        self.assertEqual(gen.timeout, 60)
 
     def test_rate_limitting(self):
         """Test rate limiting is applied."""

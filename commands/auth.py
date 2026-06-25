@@ -4,8 +4,12 @@
 # Copyright [2024] Pawel Majchrowicz
 
 import argparse
+import os
+from dotenv import load_dotenv
 
 from providers.youtube import YouTubeProvider
+
+load_dotenv()
 
 
 def run(args: argparse.Namespace):
@@ -19,8 +23,8 @@ def run(args: argparse.Namespace):
         client_id = client_info.get("installed", {}).get("client_id")
         client_secret = client_info.get("installed", {}).get("client_secret")
     else:
-        client_id = None
-        client_secret = None
+        client_id = os.environ.get("GOOGLE_OAUTH_CLIENT_ID")
+        client_secret = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET")
     
     provider = YouTubeProvider(client_id=client_id, client_secret=client_secret)
     

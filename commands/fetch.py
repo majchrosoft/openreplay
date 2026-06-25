@@ -35,7 +35,7 @@ def run(args: argparse.Namespace):
         print("Please set youtube.video_id in your config file.")
         return
     
-    output_file = getattr(args, "output", "workspace/comments.json")
+    output_file = getattr(args, "output") or "workspace/comments.json"
     
     provider = YouTubeProvider()
     
