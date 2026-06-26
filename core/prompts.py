@@ -44,7 +44,7 @@ def build_prompt(
     mode: str,
     style: str,
     custom_prompt: Optional[str] = None,
-) -> str:
+) -> tuple[str, str]:
     """Build a complete prompt for the LLM.
 
     Prompt structure:
@@ -56,6 +56,9 @@ def build_prompt(
 
     COMMENT
     Original user comment
+
+    Returns:
+        Tuple of (system_prompt, user_prompt)
     """
     system = build_system_prompt(mode, style, custom_prompt)
     system += """
@@ -76,8 +79,10 @@ No knowledge base provided."""
 
     user_prompt = f"""COMMENT
 
+{knowledge_block}
+
 User comment: "{comment}"
 
-Please generate a response."""
+Please generate a response based on the knowledge above."""
 
-    return f"{system}\n\n{knowledge_block}\n\n{user_prompt}"
+    return system, user_prompt

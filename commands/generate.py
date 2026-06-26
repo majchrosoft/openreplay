@@ -113,18 +113,15 @@ def generate_replies(
             # Build prompt
             knowledge_content = knowledge_base.get_all_content()
 
-            system_prompt = build_prompt(
+            system_prompt, user_prompt = build_prompt(
                 comment_text,
                 knowledge_content,
                 config.policy_mode,
                 config.generation_style,
             )
 
-            # Get just the system part for LLM call
-            system_parts = system_prompt.split("KNOWLEDGE")[0].strip()
-
-            # Generate response
-            generated_content = llm_generator.generate_response(comment_text, system_parts)
+            # Generate response with system and user prompts
+            generated_content = llm_generator.generate_response(user_prompt, system_prompt)
 
             # Apply template
             final_reply = template.apply(generated_content)

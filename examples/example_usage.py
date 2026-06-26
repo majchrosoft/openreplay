@@ -56,14 +56,14 @@ def simple_workflow():
     )
     
     for comment in comments:
-        prompt = build_prompt(
+        system_prompt, user_prompt = build_prompt(
             comment.text,
             knowledge_base.get_all_content(),
             policy.mode,
             config.generation_style,
         )
         
-        response = generator.generate_response(comment.text, prompt)
+        response = generator.generate_response(user_prompt, system_prompt)
         reply = template.apply(response)
         
         print(f"Comment: {comment.text[:50]}...")
@@ -94,14 +94,14 @@ def batch_workflow():
     # Generate all replies
     replies = []
     for comment in comments:
-        prompt = build_prompt(
+        system_prompt, user_prompt = build_prompt(
             comment["content"],
             knowledge_base.get_all_content(),
             "knowledge_preferred",
             "friendly",
         )
         
-        response = "Generated response"
+        response = generator.generate_response(user_prompt, system_prompt)
         reply_text = template.apply(response)
         
         replies.append({

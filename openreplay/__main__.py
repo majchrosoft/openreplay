@@ -83,6 +83,17 @@ def main():
         help="Show what would be published without actually publishing",
     )
 
+    # clear command
+    clear_parser = subparsers.add_parser(
+        "clear", help="Clear all generated data files"
+    )
+    clear_parser.add_argument(
+        "--force",
+        "-f",
+        action="store_true",
+        help="Skip confirmation prompt",
+    )
+
     args = parser.parse_args()
 
     if args.version:
@@ -98,6 +109,7 @@ def main():
         print("  select    Fetch and select YouTube videos")
         print("  generate  Generate AI responses")
         print("  publish   Publish generated responses")
+        print("  clear     Clear all generated data files")
         sys.exit(0)
 
     if args.command == "auth":
@@ -118,6 +130,10 @@ def main():
         run(args)
     elif args.command == "publish":
         from commands.publish import run
+
+        run(args)
+    elif args.command == "clear":
+        from commands.clear import run
 
         run(args)
 
